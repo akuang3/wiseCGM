@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "Package: wiseCGM\nType: Package\nTitle: Analysis of Continuous Glucose Monitoring\nVersion: 0.99.1\nAuthor: Alan Kuang\nMaintainer: Alan Kuang <alan.kuang@northwestern.edu>\nDescription: A set of functions to format, create graphical displays,\n    and analyse Wearable and Implantable SEnsor data.\nDepends: R (>= 3.3.1)\nImports:\n    xlsx (>= 0.6.1),\n    lubridate (>= 1.7.4)\nLicense: GPL-2\nEncoding: UTF-8\nLazyData: true\nRoxygenNote: 6.1.0.9000\nSuggests: knitr,\n    rmarkdown\nVignetteBuilder: knitr\nbiocViews:\n",
+    "created" : 1550267014220.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1817491632",
+    "id" : "D1C92C45",
+    "lastKnownWriteTime" : 1550267275,
+    "last_content_update" : 1550267141042,
+    "path" : "R:/PrevMed/Projects/HAPO/Alan/CGM/Scripts/wiseCGM/DESCRIPTION",
+    "project_path" : "DESCRIPTION",
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "dcf"
+}
