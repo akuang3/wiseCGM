@@ -7,7 +7,7 @@
 #' @import ggplot2 dplyr
 #'
 
-cgm_pie <- function(cgm.data, file.name){
+cgm_pie <- function(cgm.data, file.name=NULL){
   ## pie chart for target
   cgm.months <- split(cgm.data, f=cgm.data$TP)
   cgms <- c(list(cgm.data), cgm.months)
@@ -48,15 +48,23 @@ cgm_pie <- function(cgm.data, file.name){
     return(pie.chart)
   })
 
-  print({
-    png(filename=file.name,
-        width=1800, height=1400)
-    ggpubr::ggarrange(cgm.pie.list[[1]],
-                      cgm.pie.list[[2]],
-                      cgm.pie.list[[3]],
-                      cgm.pie.list[[4]],
-                      nrow=2, ncol=2, align='v')
-  })
-  dev.off()
+  if(!is.null(file.name)){
+    print({
+      png(filename=file.name,
+          width=1800, height=1400)
+      ggpubr::ggarrange(cgm.pie.list[[1]],
+                        cgm.pie.list[[2]],
+                        cgm.pie.list[[3]],
+                        cgm.pie.list[[4]],
+                        nrow=2, ncol=2, align='v')
+    })
+    dev.off()
+  }
+
+  return(ggpubr::ggarrange(cgm.pie.list[[1]],
+                           cgm.pie.list[[2]],
+                           cgm.pie.list[[3]],
+                           cgm.pie.list[[4]],
+                           nrow=2, ncol=2, align='v'))
 
 }

@@ -4,7 +4,7 @@
 \alias{hourly_boxplot}
 \title{Hourly Boxplot}
 \usage{
-hourly_boxplot(cgm.data, informative.cgm.meta, file.name)
+hourly_boxplot(cgm.data, informative.cgm.meta, file.name = NULL)
 }
 \arguments{
 \item{cgm.data:}{A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints}

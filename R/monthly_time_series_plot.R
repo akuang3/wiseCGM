@@ -10,7 +10,7 @@
 #' @import ggplot2
 #'
 monthly_time_series_plot <- function(cgm.data, informative.cgm.meta,
-                                     file.name, month, overlay=FALSE){
+                                     file.name=NULL, month, overlay=FALSE){
 
   stopifnot(is.character(month))
   cgm.data <- cgm.data[cgm.data$TP==month, ]
@@ -69,13 +69,17 @@ monthly_time_series_plot <- function(cgm.data, informative.cgm.meta,
                        limits=c(min(as.numeric(names(table(cgm.data$Day)))),
                                 max(as.numeric(names(table(cgm.data$Day))))))
 
-  print({
-    png(filename=file.name,
-        width=1800, height=1000)
-    ggpubr::ggarrange(bp_trend, insulin_trend, nrow=2, heights=c(3,1), align='v')
-  })
-  dev.off()
+  if(!is.null(file.name)){
+    print({
+      png(filename=file.name,
+          width=1800, height=1000)
+      ggpubr::ggarrange(bp_trend, insulin_trend, nrow=2, heights=c(3,1), align='v')
+    })
+    dev.off()
+  }
 
+
+  return(ggpubr::ggarrange(bp_trend, insulin_trend, nrow=2, heights=c(3,1), align='v'))
 
 
 }

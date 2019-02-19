@@ -4,8 +4,8 @@
 \alias{monthly_time_series_plot}
 \title{Time Series Plot}
 \usage{
-monthly_time_series_plot(cgm.data, informative.cgm.meta, file.name, month,
-  overlay = FALSE)
+monthly_time_series_plot(cgm.data, informative.cgm.meta,
+  file.name = NULL, month, overlay = FALSE)
 }
 \arguments{
 \item{cgm.data:}{A dataframe of CGM data formatted by format_dexcom()}

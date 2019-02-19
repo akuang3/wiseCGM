@@ -4,7 +4,8 @@
 \alias{stacked_time_series_plot}
 \title{Stacked Time Series Plot}
 \usage{
-stacked_time_series_plot(cgm.data, informative.cgm.meta, file.name)
+stacked_time_series_plot(cgm.data, informative.cgm.meta,
+  file.name = NULL)
 }
 \arguments{
 \item{cgm.data:}{A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints}

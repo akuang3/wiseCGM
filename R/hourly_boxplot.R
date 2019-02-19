@@ -8,7 +8,7 @@
 #' @import ggplot2
 #'
 hourly_boxplot <- function(cgm.data, informative.cgm.meta,
-                           file.name){
+                           file.name=NULL){
 
   ### percent of within target range for each hourly
   ## for each hour, get the highest value, per month
@@ -39,10 +39,7 @@ hourly_boxplot <- function(cgm.data, informative.cgm.meta,
   df.text <- do.call(rbind, df.text)
   df.text$TP <- factor(df.text$TP, levels=levels(cgm.data$TP))
 
-  print({
-  png(filename=file.name,
-      width=1800, height=1000)
-  ggplot(data=cgm.data[cgm.data$Event_Type=='EGV', ], aes(x=factor(Hour), y=Glucose_Value_mg_dL)) +
+  hr.bp <- ggplot(data=cgm.data[cgm.data$Event_Type=='EGV', ], aes(x=factor(Hour), y=Glucose_Value_mg_dL)) +
     geom_boxplot(outlier.size=2.5) +
     facet_wrap(.~TP, ncol=1) +
     geom_rect(data=informative.cgm.meta, aes(ymin=0, ymax=as.numeric(`Urgent Low`), xmin=-Inf, xmax=Inf), fill='#FF0000', alpha=0.1, inherit.aes=FALSE) +
@@ -59,6 +56,15 @@ hourly_boxplot <- function(cgm.data, informative.cgm.meta,
     ylab('Glucose Value mg/dL') +
     xlab('Hour of the Day') +
     ggtitle('Hourly Trends Across Time Points')
-  })
-  dev.off()
+
+  if(!is.null(file.name)){
+    print({
+      png(filename=file.name,
+          width=1800, height=1000)
+      hr.bp
+    })
+    dev.off()
+  }
+
+  return(hr.bp)
 }

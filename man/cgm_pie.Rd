@@ -4,7 +4,7 @@
 \alias{cgm_pie}
 \title{Pie Chart}
 \usage{
-cgm_pie(cgm.data, file.name)
+cgm_pie(cgm.data, file.name = NULL)
 }
 \arguments{
 \item{cgm.data:}{A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints}

@@ -8,7 +8,7 @@
 #' @import ggplot2
 #'
 stacked_time_series_plot <- function(cgm.data, informative.cgm.meta,
-                                     file.name){
+                                     file.name=NULL){
 
   ## calculate summary statistics to place on title
   cgm.data.list <- split(cgm.data, f=cgm.data$TP)
@@ -101,17 +101,14 @@ stacked_time_series_plot <- function(cgm.data, informative.cgm.meta,
   #spline.plot.data <- merge(spline.plot.data, df.info, by='TP', all=TRUE)
   #spline.plot.data$INFO <- factor(spline.plot.data$INFO, levels=levels(cgm.data$INFO))
 
-  print({
-  png(filename=file.name,
-      width=1800, height=1000)
-  ggplot(data=cgm.data[cgm.data$Event_Type=='EGV', ], aes(x=Day_Time, y=Glucose_Value_mg_dL)) +
+  stacked.ts <- ggplot(data=cgm.data[cgm.data$Event_Type=='EGV', ], aes(x=Day_Time, y=Glucose_Value_mg_dL)) +
     geom_point(size=1) +
     geom_point(data=cgm.data[cgm.data$Event_Type=='Calibration', ], aes(x=Day_Time, y=Glucose_Value_mg_dL), colour='red', size=1) +
     facet_wrap(.~INFO, ncol=1) +
     geom_rect(data=informative.cgm.meta, aes(ymin=0, ymax=as.numeric(`Urgent Low`), xmin=-Inf, xmax=Inf), fill='#FF0000', alpha=0.1, inherit.aes=FALSE) +
     geom_rect(data=informative.cgm.meta, aes(ymin=as.numeric(`Urgent Low`), ymax=as.numeric(Low), xmin=-Inf, xmax=Inf), fill='#FFA500', alpha=0.1, inherit.aes=FALSE) +
     geom_rect(data=informative.cgm.meta, aes(ymin=as.numeric(High), ymax=Inf, xmin=-Inf, xmax=Inf), fill='#FFFF00', alpha=0.1, inherit.aes=FALSE) +
-   # geom_line(data=spline.plot.data, aes(x=Day_Time, y=value), inherit.aes=FALSE, colour='blue') +
+    # geom_line(data=spline.plot.data, aes(x=Day_Time, y=value), inherit.aes=FALSE, colour='blue') +
     theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
           panel.background=element_blank(), axis.line=element_line(colour='black'),
           axis.title=element_text(size=30),
@@ -122,6 +119,15 @@ stacked_time_series_plot <- function(cgm.data, informative.cgm.meta,
     xlab('Day') +
     ggtitle('Daily Trends Across Time Points') +
     scale_x_continuous(breaks=as.numeric(names(table(cgm.data$Day))))
-  })
-  dev.off()
+
+  if(!is.null(file.name)){
+    print({
+      png(filename=file.name,
+          width=1800, height=1000)
+      stacked.ts
+    })
+    dev.off()
+  }
+
+  return(stacked.ts)
 }
