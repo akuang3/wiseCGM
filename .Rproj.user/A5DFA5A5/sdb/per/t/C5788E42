@@ -7,13 +7,13 @@
     "folds" : "",
     "hash" : "2098626157",
     "id" : "C5788E42",
-    "lastKnownWriteTime" : 1550605808,
-    "last_content_update" : 1550605808,
+    "lastKnownWriteTime" : 1550616352,
+    "last_content_update" : 1550616352,
     "path" : "R:/PrevMed/Projects/HAPO/Alan/CGM/Scripts/wiseCGM/NAMESPACE",
     "project_path" : "NAMESPACE",
     "properties" : {
     },
-    "relative_order" : 3,
+    "relative_order" : 2,
     "source_on_save" : false,
     "source_window" : "",
     "type" : "r_namespace"

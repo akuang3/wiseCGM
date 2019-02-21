@@ -18,8 +18,8 @@ format_dexcom <- function(input.path, rds.out=NULL){
                                                                       format='%H:%M:%S', tz='UTC')
 
   }else{
-    dexcom <- read.csv(input.path, header=TRUE, stringsAsFactors=FALSE,
-                       check.names=FALSE, na.strings='')
+    dexcom <- utils::read.csv(input.path, header=TRUE, stringsAsFactors=FALSE,
+                              check.names=FALSE, na.strings='')
     if(is.null(rds.out)){
       rds.out <- gsub('csv', 'RDS', input.path)
     }

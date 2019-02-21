@@ -9,7 +9,18 @@ Description: A set of functions to format, create graphical displays,
 Depends: R (>= 3.3.1)
 Imports:
     xlsx (>= 0.6.1),
-    lubridate (>= 1.7.4)
+    lubridate (>= 1.7.4),
+    dplyr(>= 0.7.8),
+    ggplot2(>= 3.0.0),
+    ggforce(>= 0.1.3),
+    ggpubr(>= 0.1.8),
+    graphics,
+    utils,
+    stats,
+    grDevices,
+    methods,
+    datasets,
+    base
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
