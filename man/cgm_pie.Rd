@@ -7,9 +7,9 @@
 cgm_pie(cgm.data, file.name = NULL)
 }
 \arguments{
-\item{cgm.data:}{A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints}
+\item{cgm.data}{A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints}
 
-\item{file.name:}{The name of the output file}
+\item{file.name}{The name of the output file}
 }
 \description{
 Generate pie chart for within, below, and above range percentage

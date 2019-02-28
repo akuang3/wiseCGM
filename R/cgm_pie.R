@@ -1,13 +1,14 @@
 #' Pie Chart
 #'
 #' Generate pie chart for within, below, and above range percentage
-#' @param cgm.data: A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints
-#' @param file.name: The name of the output file
+#' @param cgm.data A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints
+#' @param file.name The name of the output file
 #' @export
-#' @import ggplot2 dplyr
+#'
 #'
 
 cgm_pie <- function(cgm.data, file.name=NULL){
+
   ## pie chart for target
   cgm.months <- split(cgm.data, f=cgm.data$TP)
   cgms <- c(list(cgm.data), cgm.months)
@@ -68,3 +69,7 @@ cgm_pie <- function(cgm.data, file.name=NULL){
                            nrow=2, ncol=2, align='v'))
 
 }
+
+utils::globalVariables(c('Freq', 'end', 'start',
+                         'middle', 'Var1', 'Label',
+                         'hjust', 'vjust', 'png', 'dev.off'))

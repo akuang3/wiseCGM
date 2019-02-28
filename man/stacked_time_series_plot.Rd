@@ -8,11 +8,11 @@ stacked_time_series_plot(cgm.data, informative.cgm.meta,
   file.name = NULL)
 }
 \arguments{
-\item{cgm.data:}{A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints}
+\item{cgm.data}{A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints}
 
-\item{informative.cgm.meta:}{A dataframe of CGM meta data formatted by format_dexcom()}
+\item{informative.cgm.meta}{A dataframe of CGM meta data formatted by format_dexcom()}
 
-\item{file.name:}{The name of the output file}
+\item{file.name}{The name of the output file}
 }
 \description{
 Generate Time Series Plot from all three time points stacked on top of each other

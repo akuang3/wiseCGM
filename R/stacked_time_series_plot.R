@@ -1,11 +1,10 @@
 #' Stacked Time Series Plot
 #'
 #' Generate Time Series Plot from all three time points stacked on top of each other
-#' @param cgm.data: A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints
-#' @param informative.cgm.meta: A dataframe of CGM meta data formatted by format_dexcom()
-#' @param file.name: The name of the output file
+#' @param cgm.data A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints
+#' @param informative.cgm.meta A dataframe of CGM meta data formatted by format_dexcom()
+#' @param file.name The name of the output file
 #' @export
-#' @import ggplot2
 #'
 stacked_time_series_plot <- function(cgm.data, informative.cgm.meta,
                                      file.name=NULL){
@@ -131,3 +130,6 @@ stacked_time_series_plot <- function(cgm.data, informative.cgm.meta,
 
   return(stacked.ts)
 }
+
+utils::globalVariables(c('cgm.data', 'informative.cgm.meta',
+                         'file.name', 'png', 'dev.off'))

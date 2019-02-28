@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "grobman.paths <- list.files('R:/PrevMed/Projects/HAPO/Alan/CGM/Scripts',\n                            full.names=TRUE, pattern='Pt2')\n\nlibrary(wiseCGM)\n\nlapply(grobman.paths, format_dexcom)\n\n\ncgm.rds.tp1 <- readRDS('R:/PrevMed/Projects/HAPO/Alan/CGM/Scripts/Pt2 T1.RDS')\ncgm.rds.tp2 <- readRDS('R:/PrevMed/Projects/HAPO/Alan/CGM/Scripts/Pt2 T2.RDS')\ncgm.rds.tp3 <- readRDS('R:/PrevMed/Projects/HAPO/Alan/CGM/Scripts/Pt2 T3.RDS')\n\ndevtools::use_data(cgm.rds.tp1, overwrite=TRUE)\ndevtools::use_data(cgm.rds.tp2, overwrite=TRUE)\ndevtools::use_data(cgm.rds.tp3, overwrite=TRUE)\n\ndata(cgm.rds.tp1)\ndata(cgm.rds.tp2)\ndata(cgm.rds.tp3)\n\ncgm.data <- do.call(rbind, list(cgm.rds.tp1$full.cgm.data, cgm.rds.tp2$full.cgm.data, cgm.rds.tp3$full.cgm.data))\n\ninformative.cgm.meta <- data.table::rbindlist(lapply(list(cgm.rds.tp1$informative.meta.data,\n                                                          cgm.rds.tp2$informative.meta.data,\n                                                          cgm.rds.tp3$informative.meta.data), function(md){\n                                                            data.table::rbindlist(md, fill=TRUE)\n                                                          }), fill=TRUE)\n\ncgm.data$TP <- factor(cgm.data$TP, levels=grep(paste(unique(cgm.data$TP), collapse='|'), month.name, value=TRUE))\n\ninformative.cgm.meta$TP <- factor(informative.cgm.meta$TP,\n                                  levels=grep(paste(unique(informative.cgm.meta$TP), collapse='|'),\n                                              month.name, value=TRUE))\n\n\nstacked_time_series_plot(cgm.data=cgm.data,\n                         informative.cgm.meta=informative.cgm.meta,\n                         file.name='C:/Users/akd4572/Desktop/wiseCGM_stacked_ts_plot.png')\n\n\nhourly_boxplot(cgm.data = cgm.data,\n              informative.cgm.meta = informative.cgm.meta,\n               file.name = 'C:/Users/akd4572/Desktop/wiseCGM_hourly_plot.png')\n\nmonthly_time_series_plot(cgm.data=cgm.data,\n                         informative.cgm.meta=informative.cgm.meta,\n                         file.name='C:/Users/akd4572/Desktop/wiseCGM_monthly_ts_plot.png',\n                         month='October')\n\n\nmonthly_time_series_plot(cgm.data=cgm.data,\n                         informative.cgm.meta=informative.cgm.meta,\n                         file.name='C:/Users/akd4572/Desktop/wiseCGM_monthly_ts_plot_v2.png',\n                         month='October', overlay=TRUE)\n\ncgm_pie(cgm.data=cgm.data,\n        file.name='C:/Users/akd4572/Desktop/wiseCGM_pie_chart.png')\n\n\n\n\n",
+    "created" : 1550510937986.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2988686812",
+    "id" : "8CDA06DB",
+    "lastKnownWriteTime" : 1551380950,
+    "last_content_update" : 1551380950832,
+    "path" : "R:/PrevMed/Projects/HAPO/Alan/CGM/Scripts/test_wiseCGM.R",
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

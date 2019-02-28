@@ -8,15 +8,15 @@ monthly_time_series_plot(cgm.data, informative.cgm.meta,
   file.name = NULL, month, overlay = FALSE)
 }
 \arguments{
-\item{cgm.data:}{A dataframe of CGM data formatted by format_dexcom()}
+\item{cgm.data}{A dataframe of CGM data formatted by format_dexcom()}
 
-\item{informative.cgm.meta:}{A dataframe of CGM meta data formatted by format_dexcom()}
+\item{informative.cgm.meta}{A dataframe of CGM meta data formatted by format_dexcom()}
 
-\item{file.name:}{The name of the output file}
+\item{file.name}{The name of the output file}
 
-\item{month:}{The corresponding month to plot}
+\item{month}{The corresponding month to plot}
 
-\item{overlay:}{a logical value (TRUE of FALSE). If TRUE, the insulin and/or carbs intake will be overlay on top of time series plot}
+\item{overlay}{a logical value (TRUE of FALSE). If TRUE, the insulin and/or carbs intake will be overlay on top of time series plot}
 }
 \description{
 Generate Time Series Plot

@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "#' ggplot2.\n#'\n#' @name wiseCGM\n#' @docType package\n#' @import ggplot2 dplyr\nNULL\n\n#' Continuous Glucose Monitoring Data from August\n#'\n#' A list of datasets containing the data from a DEXCOM CGM Device and the meta information that is returned from the format_dexcom() function:\n#'\n#' \\itemize{\n#'   \\item full.cgm.data. A dataframe of 3264 rows and 20 columns\n#'   \\item cleaned.cgm.data. A dataframe of 1128 rows and 22 columns. This does not contain data for any days if the device needed calibration but was not performed. Missing data are imputed with mean of 2 measurements before and after the missing data.\n#'   \\item meta.data. A dataframe containing the meta information provided by DEXCOM devices\n#'   \\item informative.meta.data. A dataframe containing the High, Low, and Urgent Low threshold.\n#' }\n#'\n#' @docType data\n#' @keywords datasets\n#' @name cgm.rds.tp1\n#' @usage data(cgm.rds.tp1)\n#' @format A list of 4 data frames.\nNULL\n\n\n#' Continuous Glucose Monitoring Data from October\n#'\n#' A list of datasets containing the data from a DEXCOM CGM Device and the meta information that is returned from the format_dexcom() function:\n#'\n#' \\itemize{\n#'   \\item full.cgm.data. A dataframe of 2947 rows and 20 columns\n#'   \\item cleaned.cgm.data. A dataframe of 2845 rows and 22 columns. This does not contain data for any days if the device needed calibration but was not performed. Missing data are imputed with mean of 2 measurements before and after the missing data.\n#'   \\item meta.data. A dataframe containing the meta information provided by DEXCOM devices\n#'   \\item informative.meta.data. A dataframe containing the High, Low, and Urgent Low threshold.\n#' }\n#'\n#' @docType data\n#' @keywords datasets\n#' @name cgm.rds.tp2\n#' @usage data(cgm.rds.tp2)\n#' @format A list of 4 data frames.\nNULL\n\n#' Continuous Glucose Monitoring Data from December\n#'\n#' A list of datasets containing the data from a DEXCOM CGM Device and the meta information that is returned from the format_dexcom() function:\n#'\n#' \\itemize{\n#'   \\item full.cgm.data. A dataframe of 2279 rows and 20 columns\n#'   \\item cleaned.cgm.data. A dataframe of 2168 rows and 22 columns. This does not contain data for any days if the device needed calibration but was not performed. Missing data are imputed with mean of 2 measurements before and after the missing data.\n#'   \\item meta.data. A dataframe containing the meta information provided by DEXCOM devices\n#'   \\item informative.meta.data. A dataframe containing the High, Low, and Urgent Low threshold.\n#' }\n#'\n#' @docType data\n#' @keywords datasets\n#' @name cgm.rds.tp3\n#' @usage data(cgm.rds.tp3)\n#' @format A list of 4 data frames.\nNULL\n",
+    "created" : 1551378513242.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1436809189",
+    "id" : "5D3C6155",
+    "lastKnownWriteTime" : 1551379487,
+    "last_content_update" : 1551379487674,
+    "path" : "R:/PrevMed/Projects/HAPO/Alan/CGM/Scripts/wiseCGM/R/wiseCGM.R",
+    "project_path" : "R/wiseCGM.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 9,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,10 +1,11 @@
 #' Format DEXCOM data
 #'
 #' Format DEXCOM data into an analyzable dataframe.
-#' @param input.path: The name of the file which the data are to be read from.
-#' @param rds.out: The name of the output file
+#' @param input.path The name of the file which the data are to be read from.
+#' @param rds.out The name of the output file
 #' @export
 #'
+
 format_dexcom <- function(input.path, rds.out=NULL){
   if(grepl('xls', input.path)){
     dexcom <- xlsx::read.xlsx(input.path, sheetIndex=1, check.names=FALSE,
@@ -28,8 +29,10 @@ format_dexcom <- function(input.path, rds.out=NULL){
   names(dexcom) <- gsub(':|\\/| |-', '_', names(dexcom))
   names(dexcom) <- gsub('\\(|\\)', '', names(dexcom))
   #names(dexcom)[grepl('Index', names(dexcom))] <- 'Index'
+  names(dexcom) <- iconv(names(dexcom), 'latin1', 'ASCII', sub='')
 
   meta.data <- dexcom[which(is.na(dexcom$Timestamp_YYYY_MM_DDThh_mm_ss)), ]
+  names(meta.data) <- iconv(names(meta.data), 'latin1', 'ASCII', sub='')
 
   ## delete columns with only NAs
   remove.meta.cols <- sapply(meta.data, function(x) sum(is.na(x)))
@@ -69,7 +72,6 @@ format_dexcom <- function(input.path, rds.out=NULL){
     mdl <- mdl[, !is.na(mdl)]
     return(mdl)
   })
-
 
   ## dexcom cgm data
   cgm.data <- dexcom[-which(is.na(dexcom$Timestamp_YYYY_MM_DDThh_mm_ss)), ]
@@ -226,3 +228,5 @@ format_dexcom <- function(input.path, rds.out=NULL){
                informative.meta.data=informative.meta.data),
           file=rds.out)
 }
+
+utils::globalVariables(names=c('sd'))

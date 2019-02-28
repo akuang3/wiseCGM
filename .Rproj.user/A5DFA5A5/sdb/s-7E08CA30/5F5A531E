@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "#' Pie Chart\n#'\n#' Generate pie chart for within, below, and above range percentage\n#' @param cgm.data A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints\n#' @param file.name The name of the output file\n#' @export\n#'\n#'\n\ncgm_pie <- function(cgm.data, file.name=NULL){\n\n  ## pie chart for target\n  cgm.months <- split(cgm.data, f=cgm.data$TP)\n  cgms <- c(list(cgm.data), cgm.months)\n  names(cgms) <- c('Overall', names(cgm.months))\n  cgm.pie.df.list <- lapply(cgms, function(cgm){\n    temp <- data.frame(table(cgm[cgm$Event_Type=='EGV', ]$TARGET))\n    temp$Var1 <- factor(temp$Var1, levels=c('High', 'On Target', 'Low', 'Urgent Low'))\n    temp$Label <- paste0(temp$Var1, '\\n', round(100*(temp$Freq/sum(temp$Freq)), 2), '%')\n\n    temp <- temp %>%\n      mutate(end = 2 * pi * cumsum(Freq)/sum(Freq),\n             start = lag(end, default = 0),\n             middle = 0.5 * (start + end),\n             hjust = ifelse(middle > pi, 1, 0),\n             vjust = ifelse(middle < pi/2 | middle > 3 * pi/2, 0, 1))\n  })\n\n  names(cgm.pie.df.list) <- c('Overall', names(cgm.months))\n\n  cgm.pie.list <- lapply(names(cgm.pie.df.list), function(month){\n    cgm <- cgm.pie.df.list[[month]]\n    pie.chart <- ggplot(cgm) +\n      scale_fill_manual(values=c('#FFFA72', '#228B22', '#FFA500', '#FF0000')) +\n      ggforce::geom_arc_bar(aes(x0 = 0, y0 = 0, r0 = 0, r = 1,\n                                start = start, end = end, fill = Var1)) +\n      geom_text(aes(x=1.05*sin(middle), y=1.05*cos(middle), label=Label,\n                    hjust=hjust, vjust=vjust), size=10) +\n      coord_fixed() +\n      scale_x_continuous(limits=c(-1.75, 1.75),  # Adjust so labels are not cut off\n                         name = \"\", breaks = NULL, labels = NULL) +\n      scale_y_continuous(limits=c(-1.75, 1.75),      # Adjust so labels are not cut off\n                         name=\"\", breaks = NULL, labels = NULL) +\n      theme(legend.position='none',\n            panel.grid.major=element_blank(), panel.grid.minor=element_blank(),\n            panel.background=element_blank(), axis.line=element_line(colour='black'),\n            plot.title=element_text(size=40, hjust=0.5)) +\n      ggtitle(month)\n    return(pie.chart)\n  })\n\n  if(!is.null(file.name)){\n    print({\n      png(filename=file.name,\n          width=1800, height=1400)\n      ggpubr::ggarrange(cgm.pie.list[[1]],\n                        cgm.pie.list[[2]],\n                        cgm.pie.list[[3]],\n                        cgm.pie.list[[4]],\n                        nrow=2, ncol=2, align='v')\n    })\n    dev.off()\n  }\n\n  return(ggpubr::ggarrange(cgm.pie.list[[1]],\n                           cgm.pie.list[[2]],\n                           cgm.pie.list[[3]],\n                           cgm.pie.list[[4]],\n                           nrow=2, ncol=2, align='v'))\n\n}\n\nutils::globalVariables(c('Freq', 'end', 'start',\n                         'middle', 'Var1', 'Label',\n                         'hjust', 'vjust', 'png', 'dev.off'))\n",
+    "created" : 1550510843376.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "924869707",
+    "id" : "5F5A531E",
+    "lastKnownWriteTime" : 1551378579,
+    "last_content_update" : 1551378579673,
+    "path" : "R:/PrevMed/Projects/HAPO/Alan/CGM/Scripts/wiseCGM/R/cgm_pie.R",
+    "project_path" : "R/cgm_pie.R",
+    "properties" : {
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

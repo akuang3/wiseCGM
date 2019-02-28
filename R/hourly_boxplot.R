@@ -1,12 +1,11 @@
 #' Hourly Boxplot
 #'
 #' Generate hourly boxplot
-#' @param cgm.data: A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints
-#' @param informative.cgm.meta: A dataframe of CGM meta data formatted by format_dexcom()
-#' @param file.name: The name of the output file
+#' @param cgm.data A dataframe of CGM data formatted by format_dexcom() for a patient, containing all timepoints
+#' @param informative.cgm.meta A dataframe of CGM meta data formatted by format_dexcom()
+#' @param file.name The name of the output file
 #' @export
-#' @import ggplot2
-#'
+
 hourly_boxplot <- function(cgm.data, informative.cgm.meta,
                            file.name=NULL){
 
@@ -68,3 +67,8 @@ hourly_boxplot <- function(cgm.data, informative.cgm.meta,
 
   return(hr.bp)
 }
+
+utils::globalVariables(c('Hour', 'Glucose_Value_mg_dL', 'Urgent Low',
+                         'Low', 'High', 'YMAX', 'text','Day_Time',
+                         'png', 'dev.off'))
+

@@ -7,9 +7,9 @@
 format_dexcom(input.path, rds.out = NULL)
 }
 \arguments{
-\item{input.path:}{The name of the file which the data are to be read from.}
+\item{input.path}{The name of the file which the data are to be read from.}
 
-\item{rds.out:}{The name of the output file}
+\item{rds.out}{The name of the output file}
 }
 \description{
 Format DEXCOM data into an analyzable dataframe.

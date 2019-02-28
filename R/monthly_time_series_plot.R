@@ -1,13 +1,12 @@
 #' Time Series Plot
 #'
 #' Generate Time Series Plot
-#' @param cgm.data: A dataframe of CGM data formatted by format_dexcom()
-#' @param informative.cgm.meta: A dataframe of CGM meta data formatted by format_dexcom()
-#' @param file.name: The name of the output file
-#' @param month: The corresponding month to plot
-#' @param overlay: a logical value (TRUE of FALSE). If TRUE, the insulin and/or carbs intake will be overlay on top of time series plot
+#' @param cgm.data A dataframe of CGM data formatted by format_dexcom()
+#' @param informative.cgm.meta A dataframe of CGM meta data formatted by format_dexcom()
+#' @param file.name The name of the output file
+#' @param month The corresponding month to plot
+#' @param overlay a logical value (TRUE of FALSE). If TRUE, the insulin and/or carbs intake will be overlay on top of time series plot
 #' @export
-#' @import ggplot2
 #'
 monthly_time_series_plot <- function(cgm.data, informative.cgm.meta,
                                      file.name=NULL, month, overlay=FALSE){
@@ -83,3 +82,7 @@ monthly_time_series_plot <- function(cgm.data, informative.cgm.meta,
 
 
 }
+
+
+utils::globalVariables(c('Insulin_Value_u', 'Carb_Value_grams'))
+
