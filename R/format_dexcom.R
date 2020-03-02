@@ -227,6 +227,9 @@ format_dexcom <- function(input.path, rds.out=NULL){
                meta.data=meta.data.list,
                informative.meta.data=informative.meta.data),
           file=rds.out)
+
+  return(list(full.cgm.data=cgm.data,
+              informative.meta.data=informative.meta.data))
 }
 
 utils::globalVariables(names=c('sd'))
