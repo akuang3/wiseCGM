@@ -3,6 +3,7 @@
 #' Format DEXCOM data into an analyzable dataframe.
 #' @param input.path The name of the file which the data are to be read from.
 #' @param rds.out The name of the output file
+#' @param output.file logical. If TRUE, will output a list containing the formatted DEXCOM data and meta data.
 #' @export
 #'
 
