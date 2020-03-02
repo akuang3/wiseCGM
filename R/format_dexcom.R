@@ -6,7 +6,7 @@
 #' @export
 #'
 
-format_dexcom <- function(input.path, rds.out=NULL){
+format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE){
   if(grepl('xls', input.path)){
     dexcom <- xlsx::read.xlsx(input.path, sheetIndex=1, check.names=FALSE,
                               stringsAsFactors=FALSE,
@@ -228,8 +228,11 @@ format_dexcom <- function(input.path, rds.out=NULL){
                informative.meta.data=informative.meta.data),
           file=rds.out)
 
+  if(output.file==TRUE){
   return(list(full.cgm.data=cgm.data,
               informative.meta.data=informative.meta.data))
+  }
+
 }
 
 utils::globalVariables(names=c('sd'))

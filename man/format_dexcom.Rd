@@ -4,7 +4,7 @@
 \alias{format_dexcom}
 \title{Format DEXCOM data}
 \usage{
-format_dexcom(input.path, rds.out = NULL)
+format_dexcom(input.path, rds.out = NULL, output.file = TRUE)
 }
 \arguments{
 \item{input.path}{The name of the file which the data are to be read from.}
