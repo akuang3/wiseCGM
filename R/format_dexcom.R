@@ -4,10 +4,11 @@
 #' @param input.path The name of the file which the data are to be read from.
 #' @param rds.out The name of the output file
 #' @param output.file logical. If TRUE, will output a list containing the formatted DEXCOM data and meta data.
+#' @param check.calibration logical. If TRUE, check if devices older than G6 have at least 2 calibrations each day
 #' @export
 #'
 
-format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE){
+format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE, check.calibration=FALSE){
   if(grepl('xls', input.path)){
     dexcom <- xlsx::read.xlsx(input.path, sheetIndex=1, check.names=FALSE,
                               stringsAsFactors=FALSE,
@@ -152,33 +153,35 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE){
   date.calibrations <- as.data.frame(table(cgm.data.sub$Event_Type, cgm.data.sub$Date), stringsAsFactors=FALSE)
   date.calibrations <- date.calibrations[which(date.calibrations$Var1=='Calibration'), ]
 
-  ## determine what device were used
-  ## if before Dexcom G6, remove those with less than 2 calibration
-  as.integer(sub(".*?G.*?(\\d+).*", "\\1", 'Dexcom G6 Mobile App'))
+  if(check.calibration==TRUE){
+    ## determine what device were used
+    ## if before Dexcom G6, remove those with less than 2 calibration
+    as.integer(sub(".*?G.*?(\\d+).*", "\\1", 'Dexcom G6 Mobile App'))
 
-  if(any(sapply(meta.data.list, function(mdl){
-    device.gen <- mdl$Device_Info[!is.na(mdl$Device_Info)]
-    return(as.integer(sub(".*?G.*?(\\d+).*", "\\1", device.gen)))
-  }) < 6)){
-    before.g6 <- which(sapply(meta.data.list, function(mdl){
+    if(any(sapply(meta.data.list, function(mdl){
       device.gen <- mdl$Device_Info[!is.na(mdl$Device_Info)]
       return(as.integer(sub(".*?G.*?(\\d+).*", "\\1", device.gen)))
-    }) < 6)
-    names(before.g6) <- gsub('Alert ', '', names(before.g6))
-    cgm.device <- split(cgm.data.sub, f=cgm.data.sub$Source_Device_ID)
-    cgm.device <- lapply(names(cgm.device), function(x){
-      if(x %in% names(before.g6)){
-        temp <- cgm.device[[x]]
-        ## dates with 2 or more calibrations
-        date.calibrations <- date.calibrations[which(date.calibrations$Freq >= 2), ]
-        date.calibrations$Var2 <- as.Date(date.calibrations$Var2)
-        temp <- temp[temp$Date %in% date.calibrations$Var2, ]
-        return(temp)
-      }else{
-        cgm.device[[x]]
-      }
-    })
-    cgm.data.sub <- do.call(rbind, cgm.device)
+    }) < 6)){
+      before.g6 <- which(sapply(meta.data.list, function(mdl){
+        device.gen <- mdl$Device_Info[!is.na(mdl$Device_Info)]
+        return(as.integer(sub(".*?G.*?(\\d+).*", "\\1", device.gen)))
+      }) < 6)
+      names(before.g6) <- gsub('Alert ', '', names(before.g6))
+      cgm.device <- split(cgm.data.sub, f=cgm.data.sub$Source_Device_ID)
+      cgm.device <- lapply(names(cgm.device), function(x){
+        if(x %in% names(before.g6)){
+          temp <- cgm.device[[x]]
+          ## dates with 2 or more calibrations
+          date.calibrations <- date.calibrations[which(date.calibrations$Freq >= 2), ]
+          date.calibrations$Var2 <- as.Date(date.calibrations$Var2)
+          temp <- temp[temp$Date %in% date.calibrations$Var2, ]
+          return(temp)
+        }else{
+          cgm.device[[x]]
+        }
+      })
+      cgm.data.sub <- do.call(rbind, cgm.device)
+    }
   }
 
   if(dim(cgm.data.sub)[1] != 0){
