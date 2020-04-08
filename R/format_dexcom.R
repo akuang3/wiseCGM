@@ -27,6 +27,11 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE){
     }
   }
 
+  rds.out <- file.path(dirname(rds.out), 'RDS', basename(rds.out))
+  if(!dir.exists(dirname(rds.out))){
+    dir.create(dirname(rds.out))
+  }
+
   names(dexcom) <- gsub(':|\\/| |-', '_', names(dexcom))
   names(dexcom) <- gsub('\\(|\\)', '', names(dexcom))
   #names(dexcom)[grepl('Index', names(dexcom))] <- 'Index'
@@ -149,8 +154,16 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE){
 
   ## determine what device were used
   ## if before Dexcom G6, remove those with less than 2 calibration
-  if(any(sapply(meta.data.list,function(mdl) all(mdl$Device_Info!='Dexcom G6 Mobile App')))){
-    before.g6 <- which(sapply(meta.data.list,function(mdl) all(mdl$Device_Info!='Dexcom G6 Mobile App')))
+  as.integer(sub(".*?G.*?(\\d+).*", "\\1", 'Dexcom G6 Mobile App'))
+
+  if(any(sapply(meta.data.list, function(mdl){
+    device.gen <- mdl$Device_Info[!is.na(mdl$Device_Info)]
+    return(as.integer(sub(".*?G.*?(\\d+).*", "\\1", device.gen)))
+  }) < 6)){
+    before.g6 <- which(sapply(meta.data.list, function(mdl){
+      device.gen <- mdl$Device_Info[!is.na(mdl$Device_Info)]
+      return(as.integer(sub(".*?G.*?(\\d+).*", "\\1", device.gen)))
+    }) < 6)
     names(before.g6) <- gsub('Alert ', '', names(before.g6))
     cgm.device <- split(cgm.data.sub, f=cgm.data.sub$Source_Device_ID)
     cgm.device <- lapply(names(cgm.device), function(x){
@@ -208,30 +221,34 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE){
     })
 
     cgm.data.sub <- do.call(rbind, cgm.data.sub.dates)
+    cgm.data.sub <- cgm.data.sub[order(cgm.data.sub$Timestamp_YYYY_MM_DD_hh_mm_ss), ]
+    cgm.data.sub$Timestamp_YYYY_MM_DD_hh_mm_ss <- cgm.data.sub$Transmitter_Time_Long_Integer <- NA
   }
+
 
   cgm.data$Timestamp_YYYY_MM_DD_hh_mm_ss <- cgm.data$Transmitter_Time_Long_Integer <- NULL
 
-  cgm.data.sub <- cgm.data.sub[order(cgm.data.sub$Timestamp_YYYY_MM_DD_hh_mm_ss), ]
-  cgm.data.sub$Timestamp_YYYY_MM_DD_hh_mm_ss <- cgm.data.sub$Transmitter_Time_Long_Integer <- NA
 
   meta.data.list <- lapply(meta.data.list, function(mdl){
-    mdl$TP <- unique(cgm.data$TP);mdl
+    mdl$TP <- paste(unique(cgm.data$TP), collapse=', ');mdl
   })
 
   informative.meta.data <- lapply(informative.meta.data, function(mdl){
-    mdl$TP <- unique(cgm.data$TP); mdl
+    mdl$TP <- paste(unique(cgm.data$TP), collapse=', '); mdl
   })
 
-  saveRDS(list(full.cgm.data=cgm.data,
-               cleaned.cgm.data=cgm.data.sub,
-               meta.data=meta.data.list,
-               informative.meta.data=informative.meta.data),
+
+  rds.list <- list(full.cgm.data=cgm.data,
+                   cleaned.cgm.data=cgm.data.sub,
+                   meta.data=meta.data.list,
+                   informative.meta.data=informative.meta.data)
+
+  saveRDS(rds.list,
           file=rds.out)
 
   if(output.file==TRUE){
-  return(list(full.cgm.data=cgm.data,
-              informative.meta.data=informative.meta.data))
+    return(list(full.cgm.data=cgm.data,
+                informative.meta.data=informative.meta.data))
   }
 
 }
