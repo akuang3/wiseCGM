@@ -18,8 +18,8 @@ NULL
 #'
 #' @docType data
 #' @keywords datasets
-#' @name cgm.rds.tp1
-#' @usage data(cgm.rds.tp1)
+#' @name grobman_Pt2_T1
+#' @usage data(grobman_Pt2_T1)
 #' @format A list of 4 data frames.
 NULL
 
@@ -37,8 +37,8 @@ NULL
 #'
 #' @docType data
 #' @keywords datasets
-#' @name cgm.rds.tp2
-#' @usage data(cgm.rds.tp2)
+#' @name grobman_Pt2_T2
+#' @usage data(grobman_Pt2_T2)
 #' @format A list of 4 data frames.
 NULL
 
@@ -55,7 +55,7 @@ NULL
 #'
 #' @docType data
 #' @keywords datasets
-#' @name cgm.rds.tp3
-#' @usage data(cgm.rds.tp3)
+#' @name grobman_Pt2_T3
+#' @usage data(grobman_Pt2_T3)
 #' @format A list of 4 data frames.
 NULL
