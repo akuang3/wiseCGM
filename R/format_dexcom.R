@@ -251,7 +251,8 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE, check.cali
 
   if(output.file==TRUE){
     return(list(full.cgm.data=cgm.data,
-                informative.meta.data=informative.meta.data))
+                informative.meta.data=informative.meta.data,
+                cleaned.gdm.data=cgm.data.sub))
   }
 
 }
