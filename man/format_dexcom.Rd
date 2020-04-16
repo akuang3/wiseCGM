@@ -4,7 +4,8 @@
 \alias{format_dexcom}
 \title{Format DEXCOM data}
 \usage{
-format_dexcom(input.path, rds.out = NULL, output.file = TRUE)
+format_dexcom(input.path, rds.out = NULL, output.file = TRUE,
+  check.calibration = FALSE)
 }
 \arguments{
 \item{input.path}{The name of the file which the data are to be read from.}
@@ -12,6 +13,8 @@ format_dexcom(input.path, rds.out = NULL, output.file = TRUE)
 \item{rds.out}{The name of the output file}
 
 \item{output.file}{logical. If TRUE, will output a list containing the formatted DEXCOM data and meta data.}
+
+\item{check.calibration}{logical. If TRUE, check if devices older than G6 have at least 2 calibrations each day}
 }
 \description{
 Format DEXCOM data into an analyzable dataframe.
