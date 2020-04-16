@@ -118,7 +118,10 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE, check.cali
   ## create a column to indicate levels of glucose warnings
   cgm.data$EGV_Warnings <- ifelse(cgm.data$Event_Type=='EGV' & grepl('^[A-Za-z]+$', cgm.data$Glucose_Value_mg_dL),
                                   cgm.data$Glucose_Value_mg_dL, NA)
-  cgm.data$Glucose_Value_mg_dL <- as.numeric(cgm.data$Glucose_Value_mg_dL)
+  cgm.data$Glucose_Value_mg_dL_v2 <- as.numeric(cgm.data$Glucose_Value_mg_dL)
+
+  cgm.data <- cgm.data[order(cgm.data$Timestamp_YYYY_MM_DD_hh_mm_ss), ]
+
 
   cgm.data.list <- split(cgm.data, f=cgm.data$Source_Device_ID)
 
@@ -128,26 +131,39 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE, check.cali
     urgent.low <- as.numeric(check$Glucose_Value_mg_dL[which(check$Event_Subtype=='Urgent Low')])
     low <- as.numeric(check$Glucose_Value_mg_dL[which(check$Event_Subtype=='Low')])
     high <- as.numeric(check$Glucose_Value_mg_dL[which(check$Event_Subtype=='High')])
+
+    ## split between EGV and Calibration from others
     temp <- cgm.data.list[[device]]
-    temp$TARGET <- sapply(temp[,'Glucose_Value_mg_dL'], function(x){
+    temp.others <- temp[!grepl('EGV|Calibration', temp$Event_Type), ]
+
+    temp <- temp[grepl('EGV|Calibration', temp$Event_Type), ]
+
+    temp$TARGET <- sapply(temp[,'Glucose_Value_mg_dL_v2'], function(x){
       ifelse(is.na(x), NA,
              ifelse(x <= urgent.low, 'Urgent Low',
                     ifelse(x > urgent.low & x <= low, 'Low',
                            ifelse(x >= high, 'High', 'On Target'))))
     })
+    temp$TARGET <- ifelse(is.na(temp$TARGET), temp$Event_Subtype, temp$TARGET)
+
+    ## merge back other
+    temp <- data.table::rbindlist(list(temp, temp.others), fill=TRUE)
+
     return(temp)
   })
 
   cgm.data <- do.call(rbind, cgm.data.list)
-  cgm.data <- cgm.data[order(cgm.data$Timestamp_YYYY_MM_DD_hh_mm_ss), ]
+  ### if TARGET is NA, use Warnings
+  cgm.data$TARGET <- ifelse(is.na(cgm.data$TARGET), cgm.data$EGV_Warnings, cgm.data$TARGET)
 
-  if(any(!names(cgm.data) %in% 'Event_Subtype')){
-    cgm.data[, 'Event_Subtype'] <- NA
-  }
+
+  #if(any(!names(cgm.data) %in% 'Event_Subtype')){
+  #  cgm.data[, 'Event_Subtype'] <- NA
+  #}
 
   ## create a copy without the high/low values in glucouse value mg dl column
   cgm.data.sub <- cgm.data
-  cgm.data.sub <- cgm.data.sub[, !names(cgm.data.sub) %in% 'Event_Subtype']
+  #cgm.data.sub <- cgm.data.sub[, !names(cgm.data.sub) %in% 'Event_Subtype']
 
   ## number of calibration(s) each day
   date.calibrations <- as.data.frame(table(cgm.data.sub$Event_Type, cgm.data.sub$Date), stringsAsFactors=FALSE)
@@ -186,47 +202,102 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE, check.cali
 
   if(dim(cgm.data.sub)[1] != 0){
     ## remove calibrations?
-    cgm.data.sub <- cgm.data.sub[which(cgm.data.sub$Event_Type!='Calibration'), ]
+    ## 2020/04/16: do not remove calibrations yet
+    ##cgm.data.sub <- cgm.data.sub[which(cgm.data.sub$Event_Type!='Calibration'), ]
 
-    ## remove NAs (low/high)
-    cgm.data.sub <- cgm.data.sub[!is.na(cgm.data.sub$Glucose_Value_mg_dL), ]
+    cgm.data.sub.list <- split(cgm.data.sub, f=cgm.data.sub$Source_Device_ID)
 
-    ## number of calibration(s) each day
-    date.calibrations <- data.frame(Dates=unique(cgm.data.sub$Date), stringsAsFactors=FALSE)
+    cgm.data.sub.list <- lapply(names(cgm.data.sub.list), function(device){
+      check <- meta.data.list[[device]]
+      ## split between EGV and Calibration from others
+      temp <- cgm.data.sub.list[[device]]
 
-    ## check for consecutive dates
-    dates <- sort(date.calibrations$Dates)
-    dates.group <- split(dates, cumsum(c(TRUE, diff(dates)!=1)))
+      ## separate EGV and calibrations from other
+      temp.other <- temp[!grepl('EGV|Calibration', temp$Event_Type), ]
+      temp <- temp[grepl('EGV|Calibration', temp$Event_Type), ]
 
-    ## split cgm data into groups based on dates
-    cgm.data.sub.dates <- lapply(dates.group, function(dg){
-      temp <- cgm.data.sub[cgm.data.sub$Date %in% dg, ]
-      temp <- temp[order(temp$Timestamp_YYYY_MM_DD_hh_mm_ss), ]
-      temp$Glucose_Value_mg_dL_v2 <- NA
-      #temp$Time_diff <- c(TRUE, diff(temp$Timestamp_YYYY_MM_DD_hh_mm_ss) > 270 & diff(temp$Timestamp_YYYY_MM_DD_hh_mm_ss) < 630)
-      for(i in 3:(nrow(temp)-2)){
-        check.value <- temp[i, 'Glucose_Value_mg_dL']
-        intermediate.sv <- temp[((i-2):(i+2))[!((i-2):(i+2)) %in% i], ]
-        i.sv.mean <- mean(intermediate.sv$Glucose_Value_mg_dL, na.rm=TRUE)
-        i.sv.sd <- sd(intermediate.sv$Glucose_Value_mg_dL, na.rm=TRUE)
+      ## number of calibration(s) each day
+      date.calibrations <- data.frame(Dates=unique(temp$Date), stringsAsFactors=FALSE)
+      ## check for consecutive dates
+      dates <- sort(date.calibrations$Dates)
+      dates.group <- split(dates, cumsum(c(TRUE, diff(dates)!=1)))
 
-        upp.b <- i.sv.mean + i.sv.sd
-        low.b <- i.sv.mean - i.sv.sd
 
-        if(!(check.value >= low.b & check.value <= upp.b)){
-          temp[i, 'Glucose_Value_mg_dL_v2'] <- i.sv.mean
+      ## split cgm data into groups based on dates
+      temp.dates <- lapply(dates.group, function(dg){
+        temp.temp <- temp[temp$Date %in% dg, ]
+        temp.temp <- temp.temp[order(temp.temp$Timestamp_YYYY_MM_DD_hh_mm_ss), ]
+        # temp$Glucose_Value_mg_dL_v2 <- NA
+        #temp$Time_diff <- c(TRUE, diff(temp$Timestamp_YYYY_MM_DD_hh_mm_ss) > 270 & diff(temp$Timestamp_YYYY_MM_DD_hh_mm_ss) < 630)
+        for(i in 3:(nrow(temp.temp)-2)){
+          check.event <- temp.temp$Event_Subtype[i]
+          check.threshold <- as.numeric(check$Glucose_Value_mg_dL[which(check$Event_Subtype==check.event)])
+          check.value <- temp.temp$Glucose_Value_mg_dL_v2[i]
+          if(is.na(check.value)){
+            intermediate.sv <- temp.temp[((i-2):(i+2))[!((i-2):(i+2)) %in% i], ]
+            i.sv.mean <- mean(intermediate.sv$Glucose_Value_mg_dL_v2, na.rm=TRUE)
+            i.sv.sd <- sd(intermediate.sv$Glucose_Value_mg_dL_v2, na.rm=TRUE)
+
+            upp.b <- i.sv.mean + i.sv.sd
+            low.b <- i.sv.mean - i.sv.sd
+
+            if(grepl('Low', check.event)){
+              temp.temp$Glucose_Value_mg_dL_v2[i] <- min(i.sv.mean, check.threshold)
+            }else{
+              temp.temp$Glucose_Value_mg_dL_v2[i] <- max(i.sv.mean, check.threshold)
+            }
+
+          }
         }
-        temp$Glucose_Value_mg_dL_v2[is.na(temp$Glucose_Value_mg_dL_v2)] <- temp$Glucose_Value_mg_dL[is.na(temp$Glucose_Value_mg_dL_v2)]
 
-      }
+        return(temp.temp)
+      })
 
+      temp <- do.call(rbind, temp.dates)
+      temp <- do.call(rbind, list(temp, temp.other))
+      temp <- temp[order(temp$Timestamp_YYYY_MM_DD_hh_mm_ss), ]
       return(temp)
     })
 
-    cgm.data.sub <- do.call(rbind, cgm.data.sub.dates)
+
+    cgm.data.sub <- do.call(rbind, cgm.data.sub.list)
     cgm.data.sub <- cgm.data.sub[order(cgm.data.sub$Timestamp_YYYY_MM_DD_hh_mm_ss), ]
     cgm.data.sub$Timestamp_YYYY_MM_DD_hh_mm_ss <- cgm.data.sub$Transmitter_Time_Long_Integer <- NA
   }
+
+
+  ### relabel TARGET with mean imputed glucose
+  cgm.data.sub.list <- split(cgm.data.sub, f=cgm.data.sub$Source_Device_ID)
+
+  ## determine if glucose variable is within, above, or below target
+  cgm.data.sub.list <- lapply(names(cgm.data.sub.list), function(device){
+    check <- meta.data.list[[device]]
+    urgent.low <- as.numeric(check$Glucose_Value_mg_dL[which(check$Event_Subtype=='Urgent Low')])
+    low <- as.numeric(check$Glucose_Value_mg_dL[which(check$Event_Subtype=='Low')])
+    high <- as.numeric(check$Glucose_Value_mg_dL[which(check$Event_Subtype=='High')])
+
+    ## split between EGV and Calibration from others
+    temp <- cgm.data.sub.list[[device]]
+    temp.others <- temp[!grepl('EGV|Calibration', temp$Event_Type), ]
+
+    temp <- temp[grepl('EGV|Calibration', temp$Event_Type), ]
+
+    temp$TARGET <- sapply(temp[,'Glucose_Value_mg_dL_v2'], function(x){
+      ifelse(is.na(x), NA,
+             ifelse(x <= urgent.low, 'Urgent Low',
+                    ifelse(x > urgent.low & x <= low, 'Low',
+                           ifelse(x >= high, 'High', 'On Target'))))
+    })
+    temp$TARGET <- ifelse(is.na(temp$TARGET), temp$Event_Subtype, temp$TARGET)
+
+    ## merge back other
+    temp <- data.table::rbindlist(list(temp, temp.others), fill=TRUE)
+
+    return(temp)
+  })
+
+  cgm.data.sub <- do.call(rbind, cgm.data.sub.list)
+  cgm.data.sub$Timestamp_YYYY_MM_DD_hh_mm_ss <- cgm.data.sub$Transmitter_Time_Long_Integer <- NULL
 
 
   cgm.data$Timestamp_YYYY_MM_DD_hh_mm_ss <- cgm.data$Transmitter_Time_Long_Integer <- NULL
@@ -242,7 +313,7 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE, check.cali
 
 
   rds.list <- list(full.cgm.data=cgm.data,
-                   cleaned.cgm.data=cgm.data.sub,
+                   mean.imputed.cgm.data=cgm.data.sub,
                    meta.data=meta.data.list,
                    informative.meta.data=informative.meta.data)
 
@@ -252,7 +323,7 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE, check.cali
   if(output.file==TRUE){
     return(list(full.cgm.data=cgm.data,
                 informative.meta.data=informative.meta.data,
-                cleaned.gdm.data=cgm.data.sub))
+                mean.imputed.cgm.data=cgm.data.sub))
   }
 
 }
