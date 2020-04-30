@@ -205,76 +205,88 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE, check.cali
     cgm.data.sub <- cgm.data.sub[which(cgm.data.sub$Event_Type!='Calibration'), ]
     ## 2020/04/29: Imputed data for every 5 minute
 
-    ## find difference between adjancet rows
-    cgm.start.dt <- cgm.data.sub[which.min(cgm.data.sub$Day_Time), ]
-    cgm.end.dt <- cgm.data.sub[which.max(cgm.data.sub$Day_Time), ]
+    cgm.transmitter.id <- split(cgm.data.sub, f=cgm.data.sub$Transmitter_ID)
+    cgm.transmitter.id <- lapply(cgm.transmitter.id, function(x){
+      ## find difference between adjancet rows
+      cgm.start.dt <- x[which.min(x$Day_Time), ]
+      cgm.end.dt <- x[which.max(x$Day_Time), ]
 
-    cgm.start <- cgm.data.sub[which.min(cgm.data.sub$Transmitter_Time_Long_Integer), ]
-    cgm.end <- cgm.data.sub[which.max(cgm.data.sub$Transmitter_Time_Long_Integer), ]
+      cgm.start <- x[which.min(x$Transmitter_Time_Long_Integer), ]
+      cgm.end <- x[which.max(x$Transmitter_Time_Long_Integer), ]
 
+      full.ttl <- seq(cgm.start$Transmitter_Time_Long_Integer,
+                      cgm.end$Transmitter_Time_Long_Integer,
+                      by=300)
+      full.dt <- seq(cgm.start.dt$Day_Time,
+                     cgm.end.dt$Day_Time,
+                     by=5/1440)
 
-    full.timeframe <- data.frame(Transmitter_Time_Long_Integer=seq(cgm.start$Transmitter_Time_Long_Integer,
-                                                                   cgm.end$Transmitter_Time_Long_Integer,
-                                                                   by=300),
-                                 Day_Time_Full=seq(cgm.start.dt$Day_Time,
-                                                   cgm.end.dt$Day_Time,
-                                                   by=5/1440),
-                                 stringsAsFactors=FALSE)
+      full.timeframe <- data.frame(Transmitter_Time_Long_Integer=full.ttl,
+                                   Day_Time_Full=full.dt,
+                                   stringsAsFactors=FALSE)
 
-    cgm.data.sub <- merge(full.timeframe, cgm.data.sub, by='Transmitter_Time_Long_Integer', all=TRUE)
-    cgm.data.sub <- cgm.data.sub[order(cgm.data.sub$Transmitter_Time_Long_Integer), ]
-    cgm.data.sub$ORD <- 1:nrow(cgm.data.sub)
-    cgm.data.sub$Time_Diff <- c(300,
-                                cgm.data.sub$Transmitter_Time_Long_Integer[-1]-cgm.data.sub$Transmitter_Time_Long_Integer[-nrow(cgm.data.sub)])
+      x <- merge(full.timeframe, x, by='Transmitter_Time_Long_Integer', all=TRUE)
+      x <- x[order(x$Transmitter_Time_Long_Integer), ]
+      x$ORD <- 1:nrow(x)
+      x$Time_Diff <- c(300,
+                       x$Transmitter_Time_Long_Integer[-1]-x$Transmitter_Time_Long_Integer[-nrow(x)])
 
-    time.diff.table <- as.numeric(names(table(cgm.data.sub$Time_Diff)))
-    time.diff.table <- sapply(time.diff.table, function(x){
-      temp <- data.frame(V1=x, V2=time.diff.table)
-      temp <- temp[which(temp$V1+temp$V2==300),]
-      if(dim(temp)[1]>0){
-        min(temp$V1, temp$V2)
-      }else{
-        NULL
-      }
+      time.diff.table <- as.numeric(names(table(x$Time_Diff)))
+      time.diff.table <- sapply(time.diff.table, function(x){
+        temp <- data.frame(V1=x, V2=time.diff.table)
+        temp <- temp[which(temp$V1+temp$V2==300),]
+        if(dim(temp)[1]>0){
+          min(temp$V1, temp$V2)
+        }else{
+          NULL
+        }
+      })
+      time.diff.table <- unlist(time.diff.table)
+
+      ## remove those that are off by a few seconds
+      x <- x[-which(is.na(x$Day_Time) &
+                      x$Time_Diff <= max(time.diff.table)), ]
+
+      x$Day_Time <- ifelse(is.na(x$Day_Time), x$Day_Time_Full, x$Day_Time)
+      x$Day <- ifelse(is.na(x$Day), floor(x$Day_Time_Full), x$Day)
+      x$Total_Seconds <- (x$Day_Time %% 1)*(24*60*60)
+
+      x$Hour <- ifelse(is.na(x$Hour), floor(x$Total_Seconds/3600), x$Hour)
+
+      x$Total_Seconds <- (x$Total_Seconds - (x$Hour*60*60))
+
+      x$Min <- ifelse(is.na(x$Min), floor(x$Total_Seconds/60), x$Min)
+
+      x$Total_Seconds <- (x$Total_Seconds - (x$Min*60))
+
+      x$Sec<- ifelse(is.na(x$Sec), round(x$Total_Seconds), x$Sec)
+
+      x$Time <- ifelse(is.na(x$Time), paste(sprintf('%02d', x$Hour),
+                                            sprintf('%02d', x$Min),
+                                            sprintf('%02d', x$Sec), sep=':'),
+                       x$Time)
+
+      ## append month, duration of time wearing device can cross over months
+      ## work on this later, assume month, and devices are the same
+      x$Source_Device_ID <- ifelse(is.na(x$Source_Device_ID), x$Source_Device_ID[1], x$Source_Device_ID)
+      x$Transmitter_ID <- ifelse(is.na(x$Transmitter_ID), x$Transmitter_ID[1], x$Transmitter_ID)
+      x$Month <- ifelse(is.na(x$Month), x$Month[1], x$Month)
+      x$Year <- ifelse(is.na(x$Year), x$Year[1], x$Year)
+      x$Event_Type <- ifelse(is.na(x$Event_Type), x$Event_Type[1], x$Event_Type)
+      x$TP <- ifelse(is.na(x$TP), x$TP[1], x$TP)
+
+      x$Date <- as.Date(paste(x$Year, x$Month,
+                              x$Day, sep='-'), format='%Y-%m-%d')
+      x$WeekDay <- factor(base::weekdays(as.Date(x$Date), abbreviate=FALSE),
+                          levels=weekdays(x=as.Date(0:6, origin='1950-01-01')))
+
+      return(x)
+
     })
-    time.diff.table <- unlist(time.diff.table)
 
-    ## remove those that are off by a few seconds
-    cgm.data.sub <- cgm.data.sub[-which(is.na(cgm.data.sub$Day_Time) &
-                                          cgm.data.sub$Time_Diff <= max(time.diff.table)), ]
+    cgm.data.sub <- do.call(rbind, cgm.transmitter.id)
 
-    cgm.data.sub$Day_Time <- ifelse(is.na(cgm.data.sub$Day_Time), cgm.data.sub$Day_Time_Full, cgm.data.sub$Day_Time)
-    cgm.data.sub$Day <- ifelse(is.na(cgm.data.sub$Day), floor(cgm.data.sub$Day_Time_Full), cgm.data.sub$Day)
-    cgm.data.sub$Total_Seconds <- (cgm.data.sub$Day_Time %% 1)*(24*60*60)
 
-    cgm.data.sub$Hour <- ifelse(is.na(cgm.data.sub$Hour), floor(cgm.data.sub$Total_Seconds/3600), cgm.data.sub$Hour)
-
-    cgm.data.sub$Total_Seconds <- (cgm.data.sub$Total_Seconds - (cgm.data.sub$Hour*60*60))
-
-    cgm.data.sub$Min <- ifelse(is.na(cgm.data.sub$Min), floor(cgm.data.sub$Total_Seconds/60), cgm.data.sub$Min)
-
-    cgm.data.sub$Total_Seconds <- (cgm.data.sub$Total_Seconds - (cgm.data.sub$Min*60))
-
-    cgm.data.sub$Sec<- ifelse(is.na(cgm.data.sub$Sec), round(cgm.data.sub$Total_Seconds), cgm.data.sub$Sec)
-
-    cgm.data.sub$Time <- ifelse(is.na(cgm.data.sub$Time), paste(sprintf('%02d', cgm.data.sub$Hour),
-                                                                sprintf('%02d', cgm.data.sub$Min),
-                                                                sprintf('%02d', cgm.data.sub$Sec), sep=':'),
-                                cgm.data.sub$Time)
-
-    ## append month, duration of time wearing device can cross over months
-    ## work on this later, assume month, and devices are the same
-    cgm.data.sub$Source_Device_ID <- ifelse(is.na(cgm.data.sub$Source_Device_ID), cgm.data.sub$Source_Device_ID[1], cgm.data.sub$Source_Device_ID)
-    cgm.data.sub$Transmitter_ID <- ifelse(is.na(cgm.data.sub$Transmitter_ID), cgm.data.sub$Transmitter_ID[1], cgm.data.sub$Transmitter_ID)
-    cgm.data.sub$Month <- ifelse(is.na(cgm.data.sub$Month), cgm.data.sub$Month[1], cgm.data.sub$Month)
-    cgm.data.sub$Year <- ifelse(is.na(cgm.data.sub$Year), cgm.data.sub$Year[1], cgm.data.sub$Year)
-    cgm.data.sub$Event_Type <- ifelse(is.na(cgm.data.sub$Event_Type), cgm.data.sub$Event_Type[1], cgm.data.sub$Event_Type)
-    cgm.data.sub$TP <- ifelse(is.na(cgm.data.sub$TP), cgm.data.sub$TP[1], cgm.data.sub$TP)
-
-    cgm.data.sub$Date <- as.Date(paste(cgm.data.sub$Year, cgm.data.sub$Month,
-                                       cgm.data.sub$Day, sep='-'), format='%Y-%m-%d')
-    cgm.data.sub$WeekDay <- factor(base::weekdays(as.Date(cgm.data.sub$Date_v2), abbreviate=FALSE),
-                                   levels=weekdays(x=as.Date(0:6, origin='1950-01-01')))
     ## find the first and last reading for each device
 
 
@@ -289,45 +301,29 @@ format_dexcom <- function(input.path, rds.out=NULL, output.file=TRUE, check.cali
       ## separate EGV and calibrations from other
       temp.other <- temp[!grepl('EGV|Calibration', temp$Event_Type), ]
       temp <- temp[grepl('EGV|Calibration', temp$Event_Type), ]
+      temp <- temp[order(temp$Day), ]
 
-      ## number of calibration(s) each day
-      date.calibrations <- data.frame(Dates=unique(temp$Date), stringsAsFactors=FALSE)
-      ## check for consecutive dates
-      dates <- sort(date.calibrations$Dates)
-      dates.group <- split(dates, cumsum(c(TRUE, diff(dates)!=1)))
+      for(i in 3:(nrow(temp)-2)){
+        check.event <- temp$EGV_Warnings[i]
+        check.threshold <- as.numeric(check$Glucose_Value_mg_dL[which(check$Event_Subtype==check.event)])
+        check.value <- temp$Glucose_Value_mg_dL_v2[i]
+        if(is.na(check.value)){
+          intermediate.sv <- temp[((i-2):(i+2))[!((i-2):(i+2)) %in% i], ]
+          i.sv.mean <- mean(intermediate.sv$Glucose_Value_mg_dL_v2, na.rm=TRUE)
+          i.sv.sd <- sd(intermediate.sv$Glucose_Value_mg_dL_v2, na.rm=TRUE)
 
+          upp.b <- i.sv.mean + i.sv.sd
+          low.b <- i.sv.mean - i.sv.sd
 
-      ## split cgm data into groups based on dates
-      temp.dates <- lapply(dates.group, function(dg){
-        temp.temp <- temp[temp$Date %in% dg, ]
-        temp.temp <- temp.temp[order(temp.temp$Day_Time), ]
-        # temp$Glucose_Value_mg_dL_v2 <- NA
-        #temp$Time_diff <- c(TRUE, diff(temp$Timestamp_YYYY_MM_DD_hh_mm_ss) > 270 & diff(temp$Timestamp_YYYY_MM_DD_hh_mm_ss) < 630)
-        for(i in 3:(nrow(temp.temp)-2)){
-          check.event <- temp.temp$Event_Subtype[i]
-          check.threshold <- as.numeric(check$Glucose_Value_mg_dL[which(check$Event_Subtype==check.event)])
-          check.value <- temp.temp$Glucose_Value_mg_dL_v2[i]
-          if(is.na(check.value)){
-            intermediate.sv <- temp.temp[((i-2):(i+2))[!((i-2):(i+2)) %in% i], ]
-            i.sv.mean <- mean(intermediate.sv$Glucose_Value_mg_dL_v2, na.rm=TRUE)
-            i.sv.sd <- sd(intermediate.sv$Glucose_Value_mg_dL_v2, na.rm=TRUE)
-
-            upp.b <- i.sv.mean + i.sv.sd
-            low.b <- i.sv.mean - i.sv.sd
-
-            if(grepl('Low', check.event)){
-              temp.temp$Glucose_Value_mg_dL_v2[i] <- min(i.sv.mean, check.threshold)
-            }else{
-              temp.temp$Glucose_Value_mg_dL_v2[i] <- max(i.sv.mean, check.threshold)
-            }
-
+          if(grepl('Low', check.event)){
+            temp$Glucose_Value_mg_dL_v2[i] <- min(i.sv.mean, check.threshold)
+          }else{
+            temp$Glucose_Value_mg_dL_v2[i] <- max(i.sv.mean, check.threshold)
           }
+
         }
+      }
 
-        return(temp.temp)
-      })
-
-      temp <- do.call(rbind, temp.dates)
       temp <- do.call(rbind, list(temp, temp.other))
       #temp <- temp[order(temp$Timestamp_YYYY_MM_DD_hh_mm_ss), ]
       return(temp)
